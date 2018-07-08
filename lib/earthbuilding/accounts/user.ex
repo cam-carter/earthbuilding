@@ -6,6 +6,7 @@ defmodule Earthbuilding.Accounts.User do
   schema "users" do
     field :name, :string
     field :username, :string
+		has_one :credential, Earthbuilding.Accounts.Credential
 
     timestamps()
   end
@@ -15,6 +16,8 @@ defmodule Earthbuilding.Accounts.User do
     user
     |> cast(attrs, [:name, :username])
     |> validate_required([:name, :username])
+		|> validate_length(:name, max: 20)
+		|> validate_length(:username, max: 15)
     |> unique_constraint(:username)
   end
 end

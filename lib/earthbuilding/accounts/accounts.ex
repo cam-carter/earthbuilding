@@ -7,6 +7,7 @@ defmodule Earthbuilding.Accounts do
   alias Earthbuilding.Repo
 
   alias Earthbuilding.Accounts.User
+	alias Comeonin.Argon2
 
   @doc """
   Returns the list of users.
@@ -35,7 +36,11 @@ defmodule Earthbuilding.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+		User
+		|> Repo.get!(id)
+		|> Repo.preload(:credential)
+	end
 
   @doc """
   Creates a user.
@@ -197,4 +202,23 @@ defmodule Earthbuilding.Accounts do
   def change_credential(%Credential{} = credential) do
     Credential.changeset(credential, %{})
   end
+
+	def authenticate_user(email, plain_text_password) do
+		query =
+			from u in User,
+		  inner_join: c in assoc(u, :credential),
+		  where: c.email == ^email
+
+		case Repo.one(query) do
+			nil ->
+				Argon2.dummy_checkpw()
+				{:error, :invalid_credentials}
+			user ->
+				if Argon2.checkpw(plain_text_password, user.password) do
+					{:ok, user}
+				else
+					{:error, :invalid_credentials}
+				end
+		end
+	end
 end
