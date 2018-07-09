@@ -6,7 +6,7 @@ defmodule Earthbuilding.Accounts do
   import Ecto.Query, warn: false
   alias Earthbuilding.Repo
 
-  alias Earthbuilding.Accounts.User
+  alias Earthbuilding.Accounts.{User, Credential}
 	alias Comeonin.Argon2
 
   @doc """
@@ -57,6 +57,7 @@ defmodule Earthbuilding.Accounts do
   def create_user(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
+		|> Ecto.Changeset.cast_assoc(:credential, with: &Credential.changeset/2)
     |> Repo.insert()
   end
 
@@ -75,6 +76,7 @@ defmodule Earthbuilding.Accounts do
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
+		|> Ecto.Changeset.cast_assoc(:credential, with: &Credential.changeset/2)
     |> Repo.update()
   end
 
@@ -210,15 +212,15 @@ defmodule Earthbuilding.Accounts do
 		  where: c.email == ^email
 
 		case Repo.one(query) do
-			nil ->
-				Argon2.dummy_checkpw()
-				{:error, :invalid_credentials}
-			user ->
-				if Argon2.checkpw(plain_text_password, user.password) do
+			%User{} = user ->
+				if Argon2.check_pass(user, plain_text_password) do
 					{:ok, user}
 				else
 					{:error, :invalid_credentials}
 				end
+			nil ->
+				Argon2.dummy_checkpw()
+				{:error, :invalid_credentials}
 		end
 	end
 end

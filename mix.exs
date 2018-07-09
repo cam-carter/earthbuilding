@@ -20,7 +20,7 @@ defmodule Earthbuilding.Mixfile do
   def application do
     [
       mod: {Earthbuilding.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ex_machina]
     ]
   end
 
@@ -44,7 +44,7 @@ defmodule Earthbuilding.Mixfile do
 			{:guardian, "~> 1.0"},
 			{:comeonin, "~> 4.0"},
 			{:argon2_elixir, "~> 1.3"},
-			{:ex_machina, "~> 2.2", only: :test}
+			{:ex_machina, "~> 2.2", only: :dev}
     ]
   end
 
